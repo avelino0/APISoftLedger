@@ -1,7 +1,11 @@
 #!/bin/bash
+set -e
 
-# Run any pre-start commands, e.g., database migrations
-# dotnet ef database update # (Example migration command, requires EF tools)
+echo "Restoring dependencies..."
+dotnet restore
 
-# Start the application
-dotnet run
+echo "Publishing SoftLedger..."
+dotnet publish -c Release -o out
+
+echo "Starting SoftLedger..."
+dotnet out/SoftLedger.dll

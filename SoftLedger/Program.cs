@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 var key = builder.Configuration["JwtKey"];
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
@@ -24,7 +25,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 });
 
 var app = builder.Build();
-
+app.Run($"http://0.0.0.0:{port}");
 app.UseAuthentication();
 app.UseAuthorization();
 
