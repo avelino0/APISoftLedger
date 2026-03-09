@@ -1,15 +1,13 @@
-# build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY SoftLedger/SoftLedger.csproj SoftLedger/
-RUN dotnet restore SoftLedger/SoftLedger.csproj
+COPY SoftLedger.csproj .
+RUN dotnet restore SoftLedger.csproj
 
 COPY . .
 
-RUN dotnet publish SoftLedger/SoftLedger.csproj -c Release -o /app/publish
+RUN dotnet publish SoftLedger.csproj -c Release -o /app/publish
 
-# runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
