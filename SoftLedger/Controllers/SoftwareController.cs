@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SoftLedger.Data;
@@ -21,10 +25,17 @@ namespace SoftLedger.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public IActionResult Get([FromQuery] string? name, [FromQuery] Guid? id)
         {
-            var softwares = await _context.Softwares.ToListAsync();
-            return Ok(softwares);
+            var query = _context.Softwares.AsQueryable();
+
+            if (id.HasValue)
+                query = query.Where(x => x.Id == id.Value);
+
+            if (!string.IsNullOrEmpty(name))
+                query = query.Where(x => x.SoftwareName.Contains(name));
+
+            return Ok(query.ToList());
         }
 
         [HttpPost]
