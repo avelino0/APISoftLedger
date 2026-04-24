@@ -1,23 +1,34 @@
-﻿using SoftLedger.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using SoftLedger.Data;
+using SoftLedger.Models;
 
 namespace SoftLedger.Repositories
 {
     public class SoftwareRepository
     {
-        private static readonly List<Software> Softwares = new();
+        private readonly AppDbContext _context;
 
-        public static IEnumerable<Software> GetAll()
-            => Softwares;
-
-        public static void AddRange(IEnumerable<Software> softwares)
-            => Softwares.AddRange(softwares);
-
-        public static bool Delete(Guid id)
+        public SoftwareRepository(AppDbContext context)
         {
-            var software = Softwares.FirstOrDefault(s => s.Id == id);
+            _context = context;
+        }
+
+        public async Task<IEnumerable<Software>> GetAllAsync()
+            => await _context.Softwares.ToListAsync();
+
+        public async Task AddRangeAsync(IEnumerable<Software> softwares)
+        {
+            await _context.Softwares.AddRangeAsync(softwares);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var software = await _context.Softwares.FindAsync(id);
             if (software == null) return false;
 
-            Softwares.Remove(software);
+            _context.Softwares.Remove(software);
+            await _context.SaveChangesAsync();
             return true;
         }
     }

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SoftLedger.Data;
 using SoftLedger.Models;
 using Microsoft.AspNetCore.Authorization;
 
@@ -11,41 +13,41 @@ namespace SoftLedger.Controllers
     [Route("[controller]")]
     public class SoftwareController : ControllerBase
     {
-        private static List<Software> _softwares = new();
+        private readonly AppDbContext _context;
+
+        public SoftwareController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
-        public IActionResult Get([FromQuery] string? name, [FromQuery] Guid? id)
+        public async Task<IActionResult> GetAll()
         {
-            var query = _softwares.AsQueryable();
-
-            if (id.HasValue)
-                query = query.Where(x => x.Id == id.Value);
-
-            if (!string.IsNullOrEmpty(name))
-                query = query.Where(x => x.SoftwareName != null && x.SoftwareName.Contains(name));
-
-            return Ok(query.ToList());
+            var softwares = await _context.Softwares.ToListAsync();
+            return Ok(softwares);
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] List<Software> softwares)
+        public async Task<IActionResult> Create([FromBody] List<Software> softwares)
         {
             if (softwares == null || softwares.Count == 0)
                 return BadRequest("Lista vazia.");
 
-            _softwares.AddRange(softwares);
-            return Ok(_softwares);
+            await _context.Softwares.AddRangeAsync(softwares);
+            await _context.SaveChangesAsync();
+            return Ok(softwares);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var software = _softwares.FirstOrDefault(x => x.Id == id);
+            var software = await _context.Softwares.FindAsync(id);
 
             if (software == null)
                 return NotFound("Não encontrado.");
 
-            _softwares.Remove(software);
+            _context.Softwares.Remove(software);
+            await _context.SaveChangesAsync();
             return Ok("Removido com sucesso.");
         }
     }
