@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SoftLedger.Controllers
 {
-   
+
 
     [Authorize]
     [ApiController]
@@ -14,9 +14,17 @@ namespace SoftLedger.Controllers
         private static List<Software> _softwares = new();
 
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult Get([FromQuery] string? name, [FromQuery] Guid? id)
         {
-            return Ok(_softwares);
+            var query = _softwares.AsQueryable();
+
+            if (id.HasValue)
+                query = query.Where(x => x.Id == id.Value);
+
+            if (!string.IsNullOrEmpty(name))
+                query = query.Where(x => x.SoftwareName != null && x.SoftwareName.Contains(name));
+
+            return Ok(query.ToList());
         }
 
         [HttpPost]
