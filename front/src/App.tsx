@@ -35,9 +35,9 @@ type LoginResponse = {
 
 type FilterKey = 'todos' | 'microsoft' | 'office' | 'licenciados' | 'pendentes';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ||
-  'https://comfortable-gentleness-production-1da8.up.railway.app';
+const API_BASE_URL = normalizeApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL || 'https://comfortable-gentleness-production-1da8.up.railway.app'
+);
 const TOKEN_STORAGE_KEY = 'softledger.token';
 
 const filters: { key: FilterKey; label: string }[] = [
@@ -466,6 +466,15 @@ function formatDate(value: string | undefined) {
 function percentage(value: number, total: number) {
   if (!total) return 0;
   return Math.round((value / total) * 100);
+}
+
+function normalizeApiBaseUrl(value: string) {
+  const trimmedValue = value.trim().replace(/\/$/, '');
+  if (/^https?:\/\//i.test(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  return `https://${trimmedValue}`;
 }
 
 export default App;
