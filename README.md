@@ -21,6 +21,22 @@ VITE_API_BASE_URL=https://comfortable-gentleness-production-1da8.up.railway.app
 
 Para alterar a URL, edite `front/.env.local` ou configure a mesma variável no ambiente de deploy.
 
+### Railway
+
+Crie um serviço separado para o front apontando para a pasta `front`. O Railway detecta o `front/Dockerfile`, executa o build do Vite e serve o conteúdo estático com Caddy.
+
+Variável do serviço:
+
+```text
+VITE_API_BASE_URL=https://comfortable-gentleness-production-1da8.up.railway.app
+```
+
+Depois de gerar o domínio público do frontend, configure essa URL no backend:
+
+```text
+CORS_ALLOWED_ORIGINS=https://url-do-front.up.railway.app
+```
+
 ## Backend
 
 ```powershell
