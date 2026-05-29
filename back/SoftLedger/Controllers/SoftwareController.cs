@@ -1,12 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SoftLedger.Data;
 using SoftLedger.Models;
-using Microsoft.AspNetCore.Authorization;
+using System.Reflection;
 
 namespace SoftLedger.Controllers
 {
-   
+
 
     [Authorize]
     [ApiController]
@@ -21,10 +21,90 @@ namespace SoftLedger.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public IActionResult Get([FromQuery] string table, [FromQuery] string field, [FromQuery] string value)
         {
-            var softwares = await _context.Softwares.ToListAsync();
-            return Ok(softwares);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(table))
+                    return BadRequest(new
+                    {
+                        error = "Tabela não informada."
+                    });
+
+                if (string.IsNullOrWhiteSpace(field))
+                    return BadRequest(new
+                    {
+                        error = "Campo não informado."
+                    });
+
+                // Procura a tabela no DbContext
+                var dbSetProperty = _context.GetType().GetProperty(table,
+                    System.Reflection.BindingFlags.IgnoreCase |
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.Instance
+                );
+
+                if (dbSetProperty == null)
+                    return NotFound(new
+                    {
+                        error = $"Tabela '{table}' não encontrada."
+                    });
+
+                var dbSet = dbSetProperty.GetValue(_context);
+
+                if (dbSet == null)
+                    return StatusCode(500, new
+                    {
+                        error = "Erro ao acessar tabela."
+                    });
+
+                var data = ((IEnumerable<object>)dbSet).ToList();
+
+                if (!data.Any())
+                    return Ok(new List<object>());
+
+                var firstItem = data.First();
+
+                var property = firstItem.GetType().GetProperty(
+                    field,
+                    System.Reflection.BindingFlags.IgnoreCase |
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.Instance
+                );
+
+                if (property == null)
+                    return NotFound(new
+                    {
+                        error = $"Campo '{field}' não encontrado."
+                    });
+
+                var result = data.Where(x =>
+                {
+                    var prop = x.GetType().GetProperty(field,
+                        System.Reflection.BindingFlags.IgnoreCase |
+                        System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.Instance
+                    );
+
+                    var propValue = prop?.GetValue(x)?.ToString();
+
+                    return propValue != null &&
+                           propValue.Contains(
+                               value,
+                               StringComparison.OrdinalIgnoreCase
+                           );
+                });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = "Erro interno.",
+                    details = ex.Message
+                });
+            }
         }
 
         [HttpPost]
