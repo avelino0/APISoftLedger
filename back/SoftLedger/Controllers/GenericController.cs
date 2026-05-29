@@ -19,15 +19,12 @@ namespace SoftLedger.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get([FromQuery] string table, [FromQuery] string field, [FromQuery] string value)
+        public IActionResult Get([FromQuery] string table, [FromQuery] string? field, [FromQuery] string? value)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(table))
                     return BadRequest(new { error = "Tabela não informada." });
-
-                if (string.IsNullOrWhiteSpace(field))
-                    return BadRequest(new { error = "Campo não informado." });
 
                 var dbSetProperty = _context.GetType().GetProperty(table,
                     BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
@@ -45,6 +42,9 @@ namespace SoftLedger.Controllers
                 if (!data.Any())
                     return Ok(new List<object>());
 
+                if (string.IsNullOrWhiteSpace(field))
+                    return Ok(data);
+
                 var firstItem = data.First();
 
                 var property = firstItem.GetType().GetProperty(
@@ -60,7 +60,7 @@ namespace SoftLedger.Controllers
                         BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                     var propValue = prop?.GetValue(x)?.ToString();
                     return propValue != null &&
-                           propValue.Contains(value, StringComparison.OrdinalIgnoreCase);
+                           propValue.Contains(value ?? string.Empty, StringComparison.OrdinalIgnoreCase);
                 });
 
                 return Ok(result);
