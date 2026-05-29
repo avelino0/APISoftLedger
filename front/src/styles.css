@@ -13,6 +13,10 @@
 }
 
 body {
+  background:
+    linear-gradient(135deg, rgba(0, 122, 116, 0.08), transparent 34%),
+    linear-gradient(315deg, rgba(225, 128, 40, 0.08), transparent 34%),
+    #f3f5f7;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
@@ -46,7 +50,19 @@ button {
   margin: 0 auto;
   max-width: 430px;
   padding: 32px;
+  position: relative;
   width: 100%;
+}
+
+.auth-panel::before {
+  background: linear-gradient(90deg, #007a74, #e18028);
+  border-radius: 8px 8px 0 0;
+  content: "";
+  height: 4px;
+  left: -1px;
+  position: absolute;
+  right: -1px;
+  top: -1px;
 }
 
 .brand-mark {
@@ -145,8 +161,19 @@ input:focus {
 
 .primary-button {
   background: #007a74;
+  box-shadow: 0 12px 24px rgba(0, 122, 116, 0.2);
   color: #ffffff;
   margin-top: 4px;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.primary-button:hover {
+  background: #006c67;
+  box-shadow: 0 16px 28px rgba(0, 122, 116, 0.24);
+  transform: translateY(-1px);
 }
 
 .primary-button:disabled,
@@ -171,17 +198,23 @@ input:focus {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 264px minmax(0, 1fr);
+  grid-template-columns: 292px minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .sidebar {
-  background: #172029;
+  background:
+    linear-gradient(180deg, rgba(0, 122, 116, 0.2), transparent 34%),
+    #172029;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   color: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 28px;
   padding: 24px 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
 .sidebar-brand {
@@ -202,20 +235,124 @@ input:focus {
 
 .sidebar-nav {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .nav-item {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   color: #c9d2dc;
   justify-content: flex-start;
-  padding: 0 12px;
+  min-height: 62px;
+  padding: 9px 10px;
+  position: relative;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
   width: 100%;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(2px);
 }
 
 .nav-item.active {
   background: #ffffff;
   color: #19212a;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item.active::before {
+  background: #e18028;
+  border-radius: 0 999px 999px 0;
+  content: "";
+  height: 28px;
+  left: -11px;
+  position: absolute;
+  width: 4px;
+}
+
+.nav-icon {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.nav-item.active .nav-icon {
+  background: #d9f4f1;
+  color: #007a74;
+}
+
+.nav-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  text-align: left;
+}
+
+.nav-text strong {
+  font-size: 0.92rem;
+}
+
+.nav-text small {
+  color: #98a6b3;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.nav-item.active .nav-text small {
+  color: #667482;
+}
+
+.nav-count {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  justify-content: center;
+  margin-left: auto;
+  min-width: 30px;
+  padding: 4px 8px;
+}
+
+.nav-item.active .nav-count {
+  background: #19212a;
+  color: #ffffff;
+}
+
+.sidebar-health {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.sidebar-health span {
+  align-items: center;
+  color: #b7f4dc;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.sidebar-health strong {
+  color: #ffffff;
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .sidebar-logout {
@@ -224,7 +361,7 @@ input:focus {
 
 .workspace {
   min-width: 0;
-  padding: 28px;
+  padding: 30px;
 }
 
 .topbar {
@@ -232,7 +369,7 @@ input:focus {
   display: flex;
   gap: 20px;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .topbar h1 {
@@ -251,6 +388,7 @@ input:focus {
   background: #ffffff;
   border: 1px solid #dbe2e9;
   border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(25, 33, 42, 0.06);
   display: flex;
   gap: 10px;
   min-height: 44px;
@@ -267,9 +405,9 @@ input:focus {
 
 .metric-grid {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .metric-card {
@@ -277,10 +415,24 @@ input:focus {
   background: #ffffff;
   border: 1px solid #dfe5ec;
   border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(25, 33, 42, 0.05);
   display: flex;
   gap: 12px;
   min-height: 94px;
   padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::after {
+  background: currentColor;
+  bottom: 0;
+  content: "";
+  height: 3px;
+  left: 0;
+  opacity: 0.45;
+  position: absolute;
+  right: 0;
 }
 
 .metric-card strong {
@@ -349,7 +501,8 @@ input:focus {
   align-items: center;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  scroll-margin-top: 20px;
 }
 
 .section-heading span {
@@ -371,11 +524,22 @@ input:focus {
   background: #ffffff;
   border: 1px solid #dfe5ec;
   border-radius: 8px;
+  box-shadow: 0 12px 34px rgba(25, 33, 42, 0.06);
 }
 
 .person-card {
   min-width: 0;
   padding: 18px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.person-card:hover {
+  border-color: #c7d4df;
+  box-shadow: 0 18px 40px rgba(25, 33, 42, 0.1);
+  transform: translateY(-2px);
 }
 
 .person-header {
@@ -438,6 +602,14 @@ input:focus {
   min-height: 62px;
   min-width: 0;
   padding: 10px 12px;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.app-item:hover {
+  background: #ffffff;
+  border-color: #d7e0e8;
 }
 
 .app-item div {
@@ -479,6 +651,11 @@ input:focus {
   justify-content: space-between;
   min-height: 62px;
   padding: 12px 14px;
+  transition: background 0.18s ease;
+}
+
+.m365-item:hover {
+  background: #f8fafb;
 }
 
 .m365-item:last-child {
@@ -587,11 +764,17 @@ input:focus {
 
   .sidebar {
     gap: 16px;
+    height: auto;
     padding: 16px;
+    position: relative;
   }
 
   .sidebar-nav {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nav-item {
+    min-height: 58px;
   }
 
   .sidebar-logout {

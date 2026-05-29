@@ -1,12 +1,16 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import {
+  AlertTriangle,
   BadgeCheck,
   Boxes,
   Building2,
-  ChevronRight,
+  CircleDot,
+  CheckCircle2,
   KeyRound,
+  Layers3,
   Laptop,
+  LayoutDashboard,
   LogOut,
   RefreshCw,
   Search,
@@ -34,18 +38,20 @@ type LoginResponse = {
 };
 
 type FilterKey = 'todos' | 'microsoft' | 'office' | 'licenciados' | 'pendentes';
+type RawRecord = Record<string, unknown>;
 
 const API_BASE_URL = normalizeApiBaseUrl(
   import.meta.env.VITE_API_BASE_URL || 'https://comfortable-gentleness-production-1da8.up.railway.app'
 );
 const TOKEN_STORAGE_KEY = 'softledger.token';
+const SOFTWARE_TABLE_NAME = 'Softwares';
 
-const filters: { key: FilterKey; label: string }[] = [
-  { key: 'todos', label: 'Todos' },
-  { key: 'microsoft', label: 'Microsoft' },
-  { key: 'office', label: 'Office' },
-  { key: 'licenciados', label: 'Ativados' },
-  { key: 'pendentes', label: 'Pendentes' }
+const filters: { key: FilterKey; label: string; description: string; icon: ReactElement }[] = [
+  { key: 'todos', label: 'Todos', description: 'Inventário completo', icon: <LayoutDashboard size={17} /> },
+  { key: 'microsoft', label: 'Microsoft', description: 'Produtos Microsoft', icon: <ShieldCheck size={17} /> },
+  { key: 'office', label: 'Office', description: 'Apps do pacote 365', icon: <Layers3 size={17} /> },
+  { key: 'licenciados', label: 'Ativados', description: 'Com licença ativa', icon: <CheckCircle2 size={17} /> },
+  { key: 'pendentes', label: 'Pendentes', description: 'Requer atenção', icon: <AlertTriangle size={17} /> }
 ];
 
 const microsoft365Catalog = [
@@ -104,7 +110,8 @@ function App() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/Software`, {
+      const params = new URLSearchParams({ table: SOFTWARE_TABLE_NAME });
+      const response = await fetch(`${API_BASE_URL}/Generic?${params.toString()}`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
@@ -118,8 +125,8 @@ function App() {
         throw new Error('Não foi possível carregar o inventário.');
       }
 
-      const data = (await response.json()) as Software[];
-      setSoftware(data);
+      const data = (await response.json()) as unknown;
+      setSoftware(Array.isArray(data) ? data.map(mapSoftware) : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao consultar a API.');
     } finally {
@@ -202,6 +209,17 @@ function App() {
       .sort((a, b) => b.apps.length - a.apps.length);
   }, [filteredSoftware]);
 
+  const filterCounts = useMemo<Record<FilterKey, number>>(
+    () => ({
+      todos: software.length,
+      microsoft: software.filter((item) => item.isMicrosoftProduct).length,
+      office: software.filter((item) => item.isOfficeProduct).length,
+      licenciados: software.filter((item) => item.hasLicenseKeyAndActivated).length,
+      pendentes: software.filter((item) => !item.hasLicenseKeyAndActivated).length
+    }),
+    [software]
+  );
+
   const m365Services = useMemo(() => {
     return microsoft365Catalog.map((service) => {
       const matches = software.filter((item) => {
@@ -216,6 +234,11 @@ function App() {
       };
     });
   }, [software]);
+
+  function selectFilter(filterKey: FilterKey) {
+    setActiveFilter(filterKey);
+    document.getElementById('inventory-board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   if (!token) {
     return (
@@ -280,14 +303,28 @@ function App() {
             <button
               className={filter.key === activeFilter ? 'nav-item active' : 'nav-item'}
               key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
+              onClick={() => selectFilter(filter.key)}
               type="button"
             >
-              <ChevronRight size={16} aria-hidden="true" />
-              {filter.label}
+              <span className="nav-icon" aria-hidden="true">
+                {filter.icon}
+              </span>
+              <span className="nav-text">
+                <strong>{filter.label}</strong>
+                <small>{filter.description}</small>
+              </span>
+              <span className="nav-count">{filterCounts[filter.key]}</span>
             </button>
           ))}
         </nav>
+
+        <div className="sidebar-health">
+          <span>
+            <CircleDot size={12} aria-hidden="true" />
+            API conectada
+          </span>
+          <strong>{metrics.pending} pendências</strong>
+        </div>
 
         <button className="ghost-button sidebar-logout" onClick={logout} type="button">
           <LogOut size={18} aria-hidden="true" />
@@ -327,7 +364,7 @@ function App() {
           <Metric icon={<ShieldCheck />} label="Microsoft" value={metrics.microsoftProducts} tone="red" />
         </section>
 
-        <section className="content-grid">
+        <section className="content-grid" id="inventory-board">
           <div className="board-column wide">
             <div className="section-heading">
               <div>
@@ -448,6 +485,42 @@ function fallback(value: string | undefined | null, fallbackValue: string) {
 
 function normalize(value: string | undefined | null) {
   return fallback(value, '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function mapSoftware(item: unknown): Software {
+  const record = isRecord(item) ? item : {};
+
+  return {
+    id: getString(record, 'id', 'Id') || crypto.randomUUID(),
+    machineName: getString(record, 'machineName', 'MachineName'),
+    userName: getString(record, 'userName', 'UserName'),
+    softwareName: getString(record, 'softwareName', 'SoftwareName'),
+    version: getString(record, 'version', 'Version'),
+    publisher: getString(record, 'publisher', 'Publisher'),
+    installDate: getString(record, 'installDate', 'InstallDate'),
+    isMicrosoftProduct: getBoolean(record, 'isMicrosoftProduct', 'IsMicrosoftProduct'),
+    isWindowsProduct: getBoolean(record, 'isWindowsProduct', 'IsWindowsProduct'),
+    isOfficeProduct: getBoolean(record, 'isOfficeProduct', 'IsOfficeProduct'),
+    hasLicenseKeyAndActivated: getBoolean(record, 'hasLicenseKeyAndActivated', 'HasLicenseKeyAndActivated'),
+    collectionDate: getString(record, 'collectionDate', 'CollectionDate')
+  };
+}
+
+function isRecord(value: unknown): value is RawRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function getString(record: RawRecord, ...keys: string[]) {
+  const value = keys.map((key) => record[key]).find((item) => item !== undefined && item !== null);
+  return String(value ?? '').trim();
+}
+
+function getBoolean(record: RawRecord, ...keys: string[]) {
+  const value = keys.map((key) => record[key]).find((item) => item !== undefined && item !== null);
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value > 0;
+  if (typeof value === 'string') return ['true', '1', 'sim', 'yes'].includes(value.toLowerCase());
+  return false;
 }
 
 function latestDate(values: string[]) {
