@@ -4,12 +4,12 @@
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string MachineName { get; set; }
-        public string UserName { get; set; }
-        public string SoftwareName { get; set; }
-        public string Version { get; set; }
-        public string Publisher { get; set; }
-        public string InstallDate { get; set; }
+        public string MachineName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string SoftwareName { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
+        public string Publisher { get; set; } = string.Empty;
+        public string InstallDate { get; set; } = string.Empty;
 
         public bool IsMicrosoftProduct { get; set; }
         public bool IsWindowsProduct { get; set; }

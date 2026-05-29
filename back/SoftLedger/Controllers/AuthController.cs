@@ -30,7 +30,7 @@ namespace SoftLedger.Controllers
 
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromBody] SoftLedger.Models.LoginRequest request)
 
         {
             var user = _users.FirstOrDefault(u =>
@@ -43,7 +43,9 @@ namespace SoftLedger.Controllers
 
             return Unauthorized("Email ou senha inválidos");
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));
+            var jwtKey = _configuration["JwtKey"] ??
+                throw new InvalidOperationException("JwtKey configuration is required.");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

@@ -6,6 +6,7 @@ using SoftLedger.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+const string CorsPolicyName = "SoftLedgerCors";
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -32,11 +33,35 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+var configuredOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+var envOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS") ?? string.Empty)
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+var allowedOrigins = configuredOrigins.Concat(envOrigins).Distinct().ToArray();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicyName, policy =>
+    {
+        policy.AllowAnyHeader().AllowAnyMethod();
+
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins);
+            return;
+        }
+
+        policy.AllowAnyOrigin();
+    });
+});
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-var key = builder.Configuration["JwtKey"];
+var key = builder.Configuration["JwtKey"] ??
+    throw new InvalidOperationException("JwtKey configuration is required.");
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 
 builder.Services
@@ -69,6 +94,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty;
 });
 
+app.UseCors(CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 
